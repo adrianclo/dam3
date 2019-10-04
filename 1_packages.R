@@ -33,6 +33,8 @@ required_packages <- tibble(
 #                       "stringr",    # 1.4.0
 #                       "tidyverse")  # 1.2.1
 
+# devtools::update_version("ggplot2", version = "0.9.1", repos = "http://cran.us.r-project.org"))
+
 new_packages <- 
     required_packages %>% 
     filter(!(required_packages$packages %in% installed.packages()[,"Package"]))
