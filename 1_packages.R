@@ -37,9 +37,10 @@ required_packages <- tibble(
 
 new_packages <- 
     required_packages %>% 
-    filter(!(required_packages$packages %in% installed.packages()[,"Package"]))
+    filter(!(required_packages$packages %in% installed.packages()[,"Package"])) %>% 
+    pull(packages)
 
-if(nrow(new_packages)) {
+if(length(new_packages)) {
     cat("\n")
     cat("WARNING: Your computer does not have other required packages.\n")
     cat("R will now install the missing packages. Please wait...\n")
