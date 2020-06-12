@@ -267,18 +267,18 @@ ggsave(filename = paste0(filesDir, subDir, "sleep_bout_length.png"), g_hist, wid
 
 # export --------------------------------------------------------
 
-write.table(sleep_day, paste0(filesDir, subDir, "sleep_pattern.txt"), quote = F, sep = "\t", row.names = F)
-write.table(sleep_phase, paste0(filesDir, subDir, "sleep_phase.txt"), quote = F, sep = "\t", row.names = F)
-write.table(nBouts, paste0(filesDir, subDir, "sleep_bout_n.txt"), sep = "\t", quote = F, row.names = F)
-write.table(aveDurationBouts, paste0(filesDir, subDir, "sleep_bout_aveDur.txt"), sep = "\t", quote = F, row.names = F)
-write.table(maxDurationBouts, paste0(filesDir, subDir, "sleep_bout_maxDur.txt"), sep = "\t", quote = F, row.names = F)
-write.table(maxDurationZT, paste0(filesDir, subDir, "sleep_bout_maxDur_ZT.txt"), sep = "\t", quote = F, row.names = F)
-write.table(latency, paste0(filesDir, subDir, "sleep_latency.txt"), sep = "\t", quote = F, row.names = F)
-write.table(ci, paste0(filesDir, subDir, "sleep_ciIndex.txt"), sep = "\t", quote = F, row.names = F)
-write.table(waso, paste0(filesDir, subDir, "sleep_waso.txt"), sep = "\t", quote = F, row.names = F)
-write.table(briefAwake, paste0(filesDir, subDir, "sleep_briefAwake.txt"), sep = "\t", quote = F, row.names = F)
-write.table(briefAwake_koh, paste0(filesDir, subDir, "sleep_briefAwake_koh.txt"), sep = "\t", quote = F, row.names = F)
-write.table(boutLength_df, paste0(filesDir, subDir, "sleep_bout_length.txt"), sep = "\t", quote = F, row.names = F)
+# write.table(sleep_day, paste0(filesDir, subDir, "sleep_pattern.txt"), quote = F, sep = "\t", row.names = F)
+# write.table(sleep_phase, paste0(filesDir, subDir, "sleep_phase.txt"), quote = F, sep = "\t", row.names = F)
+# write.table(nBouts, paste0(filesDir, subDir, "sleep_bout_n.txt"), sep = "\t", quote = F, row.names = F)
+# write.table(aveDurationBouts, paste0(filesDir, subDir, "sleep_bout_aveDur.txt"), sep = "\t", quote = F, row.names = F)
+# write.table(maxDurationBouts, paste0(filesDir, subDir, "sleep_bout_maxDur.txt"), sep = "\t", quote = F, row.names = F)
+# write.table(maxDurationZT, paste0(filesDir, subDir, "sleep_bout_maxDur_ZT.txt"), sep = "\t", quote = F, row.names = F)
+# write.table(latency, paste0(filesDir, subDir, "sleep_latency.txt"), sep = "\t", quote = F, row.names = F)
+# write.table(ci, paste0(filesDir, subDir, "sleep_ciIndex.txt"), sep = "\t", quote = F, row.names = F)
+# write.table(waso, paste0(filesDir, subDir, "sleep_waso.txt"), sep = "\t", quote = F, row.names = F)
+# write.table(briefAwake, paste0(filesDir, subDir, "sleep_briefAwake.txt"), sep = "\t", quote = F, row.names = F)
+# write.table(briefAwake_koh, paste0(filesDir, subDir, "sleep_briefAwake_koh.txt"), sep = "\t", quote = F, row.names = F)
+# write.table(boutLength_df, paste0(filesDir, subDir, "sleep_bout_length.txt"), sep = "\t", quote = F, row.names = F)
 
 write.table(ss_nBouts, paste0(filesDir, subDir, "sleep_bout_n_SUBSET.txt"), sep = "\t", quote = F, row.names = F)
 write.table(ss_aveDurationBouts, paste0(filesDir, subDir, "sleep_bout_aveDur_SUBSET.txt"), sep = "\t", quote = F, row.names = F)
@@ -303,7 +303,7 @@ writexl::write_xlsx(list(sleep_pattern = sleep_day,
                          sleep_waso = waso,
                          sleep_briefAwake = briefAwake,
                          sleep_briefAwake_koh = briefAwake_koh),
-                    paste0(filesDir, subDir, flyTable$export_folder[aa], "_sleep.xlsx"))
+                    paste0(filesDir, subDir, "_", flyTable$export_folder[aa], "_sleep.xlsx"))
 
 rm(list = setdiff(ls(), c("sleep", "activity", "flyTable",
                           "filesDir", "subDir", "aa",
