@@ -130,6 +130,11 @@ if(length(day_sequence) == 12) {
 
 write.table(activity_phase, paste0(filesDir, subDir, "activity_phase.txt"), quote = F, sep = "\t", row.names = F)
 write.table(activity_day, paste0(filesDir, subDir, "activity_pattern.txt"), quote = F, sep = "\t", row.names = F)
+
+writexl::write_xlsx(list(activity_phase = activity_phase,
+                         activity_pattern = activity_day),
+                    paste0(filesDir, subDir, flyTable$export_folder[aa], "_activity.xlsx"))
+
 rm(list = setdiff(ls(), c("sleep", "activity", "flyTable",
                           "filesDir", "subDir", "aa",
                           "zt_sequence", "day_sequence", "night_sequence",

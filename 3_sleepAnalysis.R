@@ -3,15 +3,17 @@ cat("-- analyzing sleep parameters\n")
 # overall analysis: minutes sleep -------------------------------------------------------------
 
 ## sleep per hour quantified in minutes over each day per fly
-sleep %>%
+sleep_day <-
+    sleep %>%
     select(-c(time, zt_demi)) %>%
     group_by(day, phase, zt) %>%
-    summarise_all(sum) %>% ungroup() -> sleep_day
+    summarise_all(sum) %>% ungroup()
 
 sleep_day %>%
-    mutate(graph_x = rep(0:23, times = flyTable$experiment_interval[aa])) %>% # extra line
-    select(day:zt, graph_x, contains("fly")) %>% # extra line
-    gather(fly_id, sleep, -c(day, phase, zt, graph_x)) %>%
+    mutate(graph_x = rep(0:23, times = flyTable$experiment_interval[aa])) %>%
+    select(day:zt, graph_x, contains("fly")) %>%
+    pivot_longer(names_to = "fly_id",
+                 values_to = "sleep", -c(day, phase, zt, graph_x)) %>% # gather(fly_id, sleep, -c(day, phase, zt, graph_x)) %>%
     ggplot(aes(graph_x, sleep)) +
     theme_bw() +
     theme(panel.grid.major = element_blank(),
@@ -24,19 +26,23 @@ sleep_day %>%
     stat_summary(geom = "line", fun.y = mean, color = "blue") +
     labs(x = "ZT", y = "Sleep (min/hour)", title = flyTable$import_file[aa]) +
     scale_x_continuous(breaks = seq(0,23,3),
-                       labels = zt_sequence[seq(1,length(zt_sequence),3)]) + # extra line
+                       labels = zt_sequence[seq(1,length(zt_sequence),3)]) +
     facet_grid(day ~ ., labeller = label_both)
 ggsave(paste0(filesDir, subDir, "sleep_pattern.png"), width = 8.58, height = 3.11)
 
 ## sleep: day, night, total
-sleep_day %>%
-    gather(fly_id, sleep, -c(day, phase, zt)) %>%
+sleep_phase_temp <- 
+    sleep_day %>%
+    pivot_longer(names_to = "fly_id",
+                 values_to = "sleep", -c(day, phase, zt)) %>% # gather(fly_id, sleep, -c(day, phase, zt)) %>%
     group_by(fly_id, day, phase) %>%
     summarise(sleep_phase = sum(sleep)) %>%
     mutate(phase = as.character(phase)) %>%
-    spread(fly_id, sleep_phase) -> sleep_phase_temp
-sleep_day %>%
-    gather(fly_id, sleep, -c(day, phase, zt)) %>%
+    spread(fly_id, sleep_phase)
+sleep_phase <-
+    sleep_day %>%
+    pivot_longer(names_to = "fly_id",
+                 values_to = "sleep", -c(day, phase, zt)) %>% # gather(fly_id, sleep, -c(day, phase, zt)) %>%
     group_by(fly_id, day) %>%
     summarise(sleep_phase = sum(sleep)) %>%
     mutate(phase = "TOTAL") %>%
@@ -44,7 +50,7 @@ sleep_day %>%
     spread(fly_id, sleep_phase) %>%
     bind_rows(sleep_phase_temp) %>%
     mutate(phase = factor(phase, levels = c("Night","Day","TOTAL"))) %>%
-    arrange(phase, day) -> sleep_phase
+    arrange(phase, day)
 
 # sleep parameters ----------------------------------------------------------------------------
 
@@ -67,28 +73,28 @@ colnames(nBouts_night) = colnames(aveDurationBouts_night) = colnames(maxDuration
 colnames(ss_nBouts) = colnames(ss_aveDurationBouts) = colnames(ss_maxDurationBouts) = colnames(ss_maxDurationZT) = 
     colnames(ss_latency) = colnames(ss_ci) = colnames(ss_waso) = colnames(ss_briefAwake) = colnames(ss_briefAwake_koh) =
     paste0("Subset_", 1:flyTable$experiment_interval[aa])
-boutLength_df = tibble()
-ss_boutLength_df = tibble()
+boutLength_df <- tibble()
+ss_boutLength_df <- tibble()
 
 ## overall
-# jj = 1
+# jj <- 1
 for(jj in 1:flyTable$experiment_interval[aa]) {
     ## subset per day
     temp_file <- filter(sleep, day == jj)
     
-    # ii = 6
+    # ii <- 6
     for(ii in 6:dim(sleep)[2]) {
         ## subset per phase
         zzz_day <- rle(pull(temp_file[temp_file$phase == "Day", ii]))
-        tibble(values = zzz_day$values, lengths = zzz_day$lengths) %>%
+        zzz_day <- tibble(values = zzz_day$values, lengths = zzz_day$lengths) %>%
             mutate(end = cumsum(lengths),
                    start = end - (lengths - 1),
-                   zt_start = floor(start / 60)) -> zzz_day
+                   zt_start = floor(start / 60))
         zzz_night <- rle(pull(temp_file[temp_file$phase == "Night", ii]))
-        tibble(values = zzz_night$values, lengths = zzz_night$lengths) %>%
+        zzz_night <- tibble(values = zzz_night$values, lengths = zzz_night$lengths) %>%
             mutate(end = cumsum(lengths),
                    start = end - (lengths - 1),
-                   zt_start = floor(start / 60)) -> zzz_night
+                   zt_start = floor(start / 60))
         
         ## sleep bout amount
         nBouts_day[ii-5,jj] <- sum(zzz_day$values == TRUE)
@@ -114,7 +120,7 @@ for(jj in 1:flyTable$experiment_interval[aa]) {
             if(zzz_day$values[1] == TRUE) { latency_day[ii-5,jj] <- 0 } else { latency_day[ii-5,jj] <- zzz_day$lengths[1] + 1 }
             ## consolidation index
             ci_day[ii-5,jj] <- sum(zzz_day$lengths[zzz_day$values == TRUE]^2) / sum(zzz_day$lengths[zzz_day$values == TRUE])
-            ## wake after sleep onset
+            ## wake after sleep onset: total awake amount after first sleep bout during the entire phase
             if(zzz_day$values[1] == FALSE) { waso_day[ii-5,jj] <- sum(zzz_day$lengths[zzz_day$values == FALSE][-1]) } else { waso_day[ii-5,jj] <- sum(zzz_day$lengths[zzz_day$values == FALSE]) }
             ## brief awakenings default: 1-min awake epoch between two sleep sequences
             briefAwake_day[ii-5,jj] = sum(zzz_day$lengths[zzz_day$values == FALSE] == 1) 
@@ -153,26 +159,25 @@ for(jj in 1:flyTable$experiment_interval[aa]) {
 }
 
 ## in specific time window
-# jj = 1
+# jj <- 1
 for(jj in 1:flyTable$experiment_interval[aa]) {
     ## subset per day
     temp_file <- filter(sleep, day == jj)
     
-    # ii = 6
+    # ii <- 6
     for(ii in 6:dim(sleep)[2]) {
         ## zt subset
         subset <- temp_file %>% filter(between(zt, flyTable$subset_start_zt[aa], flyTable$subset_end_zt[aa]))
         subset <- rle(pull(subset[,ii]))
-        tibble(values = subset$values, lengths = subset$lengths) %>%
+        subset <- tibble(values = subset$values, lengths = subset$lengths) %>%
             mutate(end = cumsum(lengths),
                    start = end - (lengths - 1),
-                   zt_start = floor(start / 60)) -> subset
+                   zt_start = floor(start / 60))
         
         ## sleep bout amount
         ss_nBouts[ii-5,jj] <- sum(subset$values == TRUE)
         
         ## sleep bout lengths 
-        ## NOT READY !!!
         temp_subset <- subset$lengths[subset$values == TRUE]
         ss_boutLength_df %<>% bind_rows(tibble(fly = rep(names(sleep)[ii], length(temp_subset)), 
                                                phase = rep("Day", length(temp_subset)),
@@ -284,6 +289,21 @@ write.table(ss_ci, paste0(filesDir, subDir, "sleep_ciIndex_SUBSET.txt"), sep = "
 write.table(ss_waso, paste0(filesDir, subDir, "sleep_waso_SUBSET.txt"), sep = "\t", quote = F, row.names = F)
 write.table(ss_briefAwake, paste0(filesDir, subDir, "sleep_briefAwake_SUBSET.txt"), sep = "\t", quote = F, row.names = F)
 write.table(ss_briefAwake_koh, paste0(filesDir, subDir, "sleep_briefAwake_koh_SUBSET.txt"), sep = "\t", quote = F, row.names = F)
+write.table(ss_boutLength_df, paste0(filesDir, subDir, "sleep_bout_lengthSUBSET.txt"), sep = "\t", quote = F, row.names = F)
+
+writexl::write_xlsx(list(sleep_pattern = sleep_day,
+                         sleep_phase = sleep_phase,
+                         sleep_bout_n = nBouts,
+                         sleep_bout_aveDur = aveDurationBouts,
+                         sleep_bout_maxDur = maxDurationBouts,
+                         sleep_bout_maxDur_ZT = maxDurationZT,
+                         sleep_bout_length = boutLength_df,
+                         sleep_latency = latency,
+                         sleep_ciIndex = ci, 
+                         sleep_waso = waso,
+                         sleep_briefAwake = briefAwake,
+                         sleep_briefAwake_koh = briefAwake_koh),
+                    paste0(filesDir, subDir, flyTable$export_folder[aa], "_sleep.xlsx"))
 
 rm(list = setdiff(ls(), c("sleep", "activity", "flyTable",
                           "filesDir", "subDir", "aa",

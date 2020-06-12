@@ -22,24 +22,24 @@ cat("         .5: 03-02-2020\n\n")
 cat("PURPOSE: This program will read in your .txt file(s) containing SLEEP and AWAKE activity in flies\n")
 cat("         Data are exported to a folder specified in your flyTable.xlsx.\n\n")
 
-rm(list = ls())
 source("1_packages.R")
 
 filesDir <- choose_dir() # C:/this/directory
 if(!str_sub(filesDir, -1) == "/") { filesDir <- paste0(filesDir, "/") }
 
 ## import flyTable
-read_excel(paste0(filesDir, "flyTable.xlsx")) %>%
+flyTable <-
+    read_excel(paste0(filesDir, "flyTable.xlsx")) %>%
     mutate(start_date = ymd(start_date),
            # start_time = hms::as.hms(paste(start_hour,start_min,"00", sep = ":"))) %>% # hms::as.hms is deprecated
            start_time = hms::as_hms(paste(start_hour,start_min,"00", sep = ":"))) %>%
-    select(-c(start_min,start_hour)) %>%
+    select(-c(start_min, start_hour)) %>%
     mutate(start = ymd_hms(paste(start_date, start_time))) %>%
     select(import_file:start_date, start_time, start, start_zt:experiment_interval, 
            subset_start_zt, subset_end_zt,
-           export_folder) -> flyTable
+           export_folder)
 
-# aa = 1
+# aa <- 1
 for(aa in 1:nrow(flyTable)) {
     cat("Processing file", aa, "::", flyTable$import_file[aa], "\n")
     ## Create subdirectory to export files to

@@ -14,24 +14,23 @@ suppressMessages(suppressWarnings(library(dplyr)))
 suppressMessages(suppressWarnings(library(devtools)))
 
 ## install packages if not available on host computer
-required_packages <- tibble(
-    packages = c("beepr","data.table","devtools","doBy","easycsv","gridExtra","hms","lubridate","magrittr","readxl","reshape2","stringr","tidyverse"),
-    version = c("1.3","1.12.2","2.1.0","4.6.2","1.0.8","2.3","0.5.0","1.7.4","1.5","1.3.1","1.4.3","1.4.0","1.2.1")
+required_packages <- tribble(
+    ~packages,    ~version,
+    "beepr",      "1.3",
+    "data.table", "1.12.2",
+    "devtools",   "2.1.0",
+    "doBy",       "4.6.2",
+    "easycsv",    "1.0.8",
+    "gridExtra",  "2.3",
+    "hms",        "0.5.0",
+    "lubridate",  "1.7.4",
+    "magrittr",   "1.5",
+    "readxl",     "1.3.1",
+    "reshape2",   "1.4.3",
+    "stringr",    "1.4.0",
+    "tidyverse",  "1.2.1",
+    "writexl",    "1.2"
 )
-
-# required_packages <- c("beepr",     # 1.3
-#                       "data.table", # 1.12.2
-#                       "doBy",       # 4.6.2
-#                       "devtools",   # 2.1.0
-#                       "easycsv",    # 1.0.8
-#                       "gridExtra",  # 2.3
-#                       "hms",        # 0.5.0
-#                       "lubridate",  # 1.7.4
-#                       "magrittr",   # 1.5
-#                       "readxl",     # 1.3.1
-#                       "reshape2",   # 1.4.3
-#                       "stringr",    # 1.4.0
-#                       "tidyverse")  # 1.2.1
 
 # devtools::update_version("ggplot2", version = "0.9.1", repos = "http://cran.us.r-project.org"))
 
