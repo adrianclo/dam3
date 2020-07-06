@@ -129,39 +129,39 @@ if(length(day_sequence) == 12) {
 
 # active count (proxy for hyperactivity) ----------------------------------
 
-active_count <- function(data) {
+active_counter <- function(data) {
     temp_1 <- data %>% 
-        select(contains("fly")) %>% 
-        mutate_all(.funs = function(x) ifelse(x > 0, T, F))
-    temp_2 <- apply(data %>% select(contains("fly")), 2, sum) / apply(temp_1, 2, sum)
+        dplyr::select(dplyr::contains("fly")) %>% 
+        dplyr::mutate_all(.funs = function(x) ifelse(x > 0, T, F))
+    temp_2 <- apply(data %>% dplyr::select(dplyr::contains("fly")), 2, sum) / apply(temp_1, 2, sum)
     
-    tibble(
+    dplyr::tibble(
         fly_id = names(temp_2),
         active_count = temp_2
     )
 }
 
 active_count <- activity %>% 
-    nest(data = -c(day,phase)) %>% 
-    mutate(active_count = map(data, ~active_count(.x))) %>% 
-    unnest(active_count) %>% 
-    select(-data)
+    tidyr::nest(data = -c(day,phase)) %>% 
+    dplyr::mutate(active_count = purrr::map(data, ~active_counter(.x))) %>% 
+    tidyr::unnest(active_count) %>% 
+    dplyr::select(-data)
 active_count <- active_count %>% 
-    filter(phase == "Night") %>% 
-    pivot_wider(names_from = day, values_from = active_count) %>% 
-    rename("Night_1" = `1`,
+    dplyr::filter(phase == "Night") %>% 
+    tidyr::pivot_wider(names_from = day, values_from = active_count) %>% 
+    dplyr::rename("Night_1" = `1`,
            "Night_2" = `2`,
            "Night_3" = `3`) %>% 
-    bind_cols(
+    dplyr::bind_cols(
         active_count %>% 
-            filter(phase == "Day") %>% 
-            pivot_wider(names_from = day, values_from = active_count) %>% 
-            rename("Day_1" = `1`,
+            dplyr::filter(phase == "Day") %>% 
+            tidyr::pivot_wider(names_from = day, values_from = active_count) %>% 
+            dplyr::rename("Day_1" = `1`,
                    "Day_2" = `2`,
                    "Day_3" = `3`) %>% 
-            select(-c(phase, fly_id))
+            dplyr::select(-c(phase, fly_id))
     ) %>% 
-    select(-phase)
+    dplyr::select(-phase)
 
 # export --------------------------------------------------------
 
