@@ -126,17 +126,54 @@ if(length(day_sequence) == 12) {
 #     group_by(day,phase,zt) %>% 
 #     summarise(fly_01 = sum(fly_01),fly_02 = sum(fly_02),fly_03 = sum(fly_03),fly_04 = sum(fly_04))
 
+
+# active count (proxy for hyperactivity) ----------------------------------
+
+active_count <- function(data) {
+    temp_1 <- data %>% 
+        select(contains("fly")) %>% 
+        mutate_all(.funs = function(x) ifelse(x > 0, T, F))
+    temp_2 <- apply(data %>% select(contains("fly")), 2, sum) / apply(temp_1, 2, sum)
+    
+    tibble(
+        fly_id = names(temp_2),
+        active_count = temp_2
+    )
+}
+
+active_count <- activity %>% 
+    nest(data = -c(day,phase)) %>% 
+    mutate(active_count = map(data, ~active_count(.x))) %>% 
+    unnest(active_count) %>% 
+    select(-data)
+active_count <- active_count %>% 
+    filter(phase == "Night") %>% 
+    pivot_wider(names_from = day, values_from = active_count) %>% 
+    rename("Night_1" = `1`,
+           "Night_2" = `2`,
+           "Night_3" = `3`) %>% 
+    bind_cols(
+        active_count %>% 
+            filter(phase == "Day") %>% 
+            pivot_wider(names_from = day, values_from = active_count) %>% 
+            rename("Day_1" = `1`,
+                   "Day_2" = `2`,
+                   "Day_3" = `3`) %>% 
+            select(-c(phase, fly_id))
+    ) %>% 
+    select(-phase)
+
 # export --------------------------------------------------------
 
 # write.table(activity_phase, paste0(filesDir, subDir, "activity_phase.txt"), quote = F, sep = "\t", row.names = F)
 # write.table(activity_day, paste0(filesDir, subDir, "activity_pattern.txt"), quote = F, sep = "\t", row.names = F)
 
 writexl::write_xlsx(list(activity_phase = activity_phase,
-                         activity_pattern = activity_day),
+                         activity_pattern = activity_day,
+                         active_count = active_count),
                     paste0(filesDir, subDir, "_", flyTable$export_folder[aa], "_activity.xlsx"))
 
 rm(list = setdiff(ls(), c("sleep", "activity", "flyTable",
                           "filesDir", "subDir", "aa",
                           "zt_sequence", "day_sequence", "night_sequence",
                           "flies")))
-
