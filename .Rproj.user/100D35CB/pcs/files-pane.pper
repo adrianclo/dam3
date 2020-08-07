@@ -1,9 +1,9 @@
 {
-    "path" : "~/GitHub/dam3",
-    "sortOrder" : [
+    "path": "~/GitHub/dam3",
+    "sortOrder": [
         {
-            "ascending" : true,
-            "columnIndex" : 2
+            "columnIndex": 2,
+            "ascending": true
         }
     ]
 }

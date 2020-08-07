@@ -116,7 +116,8 @@ for(jj in 1:flyTable$experiment_interval[aa]) {
         if(sum(zzz_day$values == TRUE) > 0) {
             aveDurationBouts_day[ii-5,jj] <- round(mean(zzz_day$lengths[zzz_day$values == TRUE]), 2)
             maxDurationBouts_day[ii-5,jj] <- max(zzz_day$lengths[zzz_day$values == TRUE])
-            maxDurationZT_day[ii-5,jj] <- zzz_day %>% filter(values == TRUE) %>% filter(lengths == max(lengths)) %>% slice(1) %>% pull(zt_start)        ## sleep latency
+            maxDurationZT_day[ii-5,jj] <- zzz_day %>% filter(values == TRUE) %>% filter(lengths == max(lengths)) %>% slice(1) %>% pull(zt_start)
+            ## sleep latency
             if(zzz_day$values[1] == TRUE) { latency_day[ii-5,jj] <- 0 } else { latency_day[ii-5,jj] <- zzz_day$lengths[1] + 1 }
             ## consolidation index
             ci_day[ii-5,jj] <- sum(zzz_day$lengths[zzz_day$values == TRUE]^2) / sum(zzz_day$lengths[zzz_day$values == TRUE])
