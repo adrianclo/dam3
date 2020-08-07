@@ -21,9 +21,9 @@ sleep_day %>%
     geom_rect(mapping = aes(xmin = which(zt_sequence == head(night_sequence,1)) -1, 
                             xmax = which(zt_sequence == tail(night_sequence,1)) -1, ymin = 0, ymax = 60), fill = "gray", alpha = 1/5) +
     geom_point(alpha = 1/10) +
-    stat_summary(geom = "point", fun.y = mean, color = "blue") +
+    stat_summary(geom = "point", fun = mean, color = "blue") +
     stat_summary(geom = "errorbar", fun.data = mean_se, color = "blue", width = .1) +
-    stat_summary(geom = "line", fun.y = mean, color = "blue") +
+    stat_summary(geom = "line", fun = mean, color = "blue") +
     labs(x = "ZT", y = "Sleep (min/hour)", title = flyTable$import_file[aa]) +
     scale_x_continuous(breaks = seq(0,23,3),
                        labels = zt_sequence[seq(1,length(zt_sequence),3)]) +

@@ -2,38 +2,35 @@ cat("-- analyzing activity parameters\n")
 
 # overall analysis: beam crossings per 30 min / phase -----------------------------------------
 
-# activity %>%
-#     filter(day == 1 & phase == "Day" & between(zt,6,11)) %>%
-#     mutate(phase = factor(case_when(between(zt,6,8) ~ "baseline", # first 3 hours
-#                              between(zt,9,11) ~ "anticipation"), # last 3 hours
-#                           levels = c("baseline","anticipation"))) %>%
-#     select(time, phase, contains("fly")) %>%
-#     gather(fly_id, activity, -c(time,phase)) %>%
-#     ggplot(aes(time, activity, group = fly_id, color = fly_id)) +
-#     facet_grid(phase ~ .) +
-#     geom_line() +
-#     scale_x_datetime(date_breaks = "2 hour")
-
 activity %>%
     select(-c(time, zt)) %>%
     group_by(day, phase, zt_demi) %>%
     summarise_all(sum) %>% ungroup() -> activity_day
 
 activity_day %>%
-    mutate(graph_x = rep(seq(0,23.5,.5), times = flyTable$experiment_interval[aa])) %>% # extra line
-    select(day:zt_demi, graph_x, contains("fly")) %>% # extra line
-    gather(fly_id, activity, -c(day, phase, zt_demi, graph_x)) %>%
-    ggplot(aes(graph_x, activity)) +
+    mutate(zt = floor(zt_demi)) %>% 
+    # mutate(graph_x = rep(seq(0,23.5,.5), times = flyTable$experiment_interval[aa])) %>% # extra line
+    select(day:zt_demi,
+           zt,
+           # graph_x, 
+           contains("fly")) %>% # extra line
+    pivot_longer(names_to = "fly_id",
+                 values_to = "activity", -c(day, phase, 
+                                            zt,
+                                            # graph_x,
+                                            zt_demi)) %>% 
+    group_by(day, zt, fly_id) %>% 
+    summarise(activity = sum(activity)) %>% 
+    ggplot(., aes(zt, activity)) +
     theme_bw() +
     theme(panel.grid.major = element_blank(),
           panel.grid.minor = element_blank()) +
     geom_rect(mapping = aes(xmin = which(zt_sequence == head(night_sequence,1)) -1, 
                             xmax = which(zt_sequence == tail(night_sequence,1)) -1+.50, ymin = 0, ymax = max(activity)), fill = "gray", alpha = 1/5) +
     geom_point(alpha = 1/10) +
-    # geom_point(data = filter(activity_day, day == 1), aes(zt_demi,fly_01), color = "red") + # subset()
-    stat_summary(geom = "point", fun.y = mean, color = "blue") +
+    stat_summary(geom = "point", fun = mean, color = "blue") +
     stat_summary(geom = "errorbar", fun.data = mean_se, color = "blue", width = .1) +
-    stat_summary(geom = "line", fun.y = mean, color = "blue") +
+    stat_summary(geom = "line", fun = mean, color = "blue") +
     labs(x = "ZT", y = "Beam crossings (n)", title = flyTable$import_file[aa]) +
     scale_x_continuous(breaks = seq(0,23,3),
                        labels = zt_sequence[seq(1,length(zt_sequence),3)]) + # extra line
@@ -148,20 +145,17 @@ active_count <- activity %>%
     dplyr::select(-data)
 active_count <- active_count %>% 
     dplyr::filter(phase == "Night") %>% 
-    tidyr::pivot_wider(names_from = day, values_from = active_count) %>% 
-    dplyr::rename("Night_1" = `1`,
-           "Night_2" = `2`,
-           "Night_3" = `3`) %>% 
+    dplyr::mutate(phase = paste(phase, day, sep = "_")) %>% 
+    dplyr::select(-day) %>% 
+    tidyr::pivot_wider(names_from = phase, values_from = active_count) %>% 
     dplyr::bind_cols(
         active_count %>% 
             dplyr::filter(phase == "Day") %>% 
-            tidyr::pivot_wider(names_from = day, values_from = active_count) %>% 
-            dplyr::rename("Day_1" = `1`,
-                   "Day_2" = `2`,
-                   "Day_3" = `3`) %>% 
-            dplyr::select(-c(phase, fly_id))
-    ) %>% 
-    dplyr::select(-phase)
+            dplyr::mutate(phase = paste(phase, day, sep = "_")) %>% 
+            dplyr::select(-day) %>% 
+            tidyr::pivot_wider(names_from = phase, values_from = active_count) %>% 
+            dplyr::select(-fly_id)
+    )
 
 # export --------------------------------------------------------
 
