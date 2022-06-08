@@ -20,7 +20,7 @@ activity_day %>%
                                             # graph_x,
                                             zt_demi)) %>% 
     group_by(day, zt, fly_id) %>% 
-    summarise(activity = sum(activity)) %>% 
+    summarise(activity = sum(activity), .groups = "drop") %>% 
     ggplot(., aes(zt, activity)) +
     theme_bw() +
     theme(panel.grid.major = element_blank(),
@@ -171,3 +171,4 @@ rm(list = setdiff(ls(), c("sleep", "activity", "flyTable",
                           "filesDir", "subDir", "aa",
                           "zt_sequence", "day_sequence", "night_sequence",
                           "flies")))
+

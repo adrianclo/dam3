@@ -9,6 +9,12 @@ sleep_day <-
     group_by(day, phase, zt) %>%
     summarise_all(sum) %>% ungroup()
 
+sleep_day_demi <-
+    sleep %>%
+    select(-c(time, zt)) %>%
+    group_by(day, phase, zt_demi) %>%
+    summarise_all(sum) %>% ungroup()
+
 sleep_day %>%
     mutate(graph_x = rep(0:23, times = flyTable$experiment_interval[aa])) %>%
     select(day:zt, graph_x, contains("fly")) %>%
@@ -30,13 +36,34 @@ sleep_day %>%
     facet_grid(day ~ ., labeller = label_both)
 ggsave(paste0(filesDir, subDir, "sleep_pattern.png"), width = 8.58, height = 3.11)
 
+sleep_day_demi %>%
+    mutate(graph_x = rep(seq(0,23.5,.5), times = flyTable$experiment_interval[aa])) %>%
+    select(day:zt_demi, graph_x, contains("fly")) %>%
+    pivot_longer(names_to = "fly_id",
+                 values_to = "sleep", -c(day, phase, zt_demi, graph_x)) %>% # gather(fly_id, sleep, -c(day, phase, zt, graph_x)) %>%
+    ggplot(aes(graph_x, sleep)) +
+    theme_bw() +
+    theme(panel.grid.major = element_blank(),
+          panel.grid.minor = element_blank()) +
+    geom_rect(mapping = aes(xmin = which(zt_sequence == head(night_sequence,1)) -1, 
+                            xmax = which(zt_sequence == tail(night_sequence,1)) -1, ymin = 0, ymax = 60), fill = "gray", alpha = 1/5) +
+    geom_point(alpha = 1/10) +
+    stat_summary(geom = "point", fun = mean, color = "blue") +
+    stat_summary(geom = "errorbar", fun.data = mean_se, color = "blue", width = .1) +
+    stat_summary(geom = "line", fun = mean, color = "blue") +
+    labs(x = "ZT", y = "Sleep (min/30 min)", title = flyTable$import_file[aa]) +
+    scale_x_continuous(breaks = seq(0,23,3),
+                       labels = zt_sequence[seq(1,length(zt_sequence),3)]) +
+    facet_grid(day ~ ., labeller = label_both)
+ggsave(paste0(filesDir, subDir, "sleep_pattern (30 min).png"), width = 8.58, height = 3.11)
+
 ## sleep: day, night, total
 sleep_phase_temp <- 
     sleep_day %>%
     pivot_longer(names_to = "fly_id",
                  values_to = "sleep", -c(day, phase, zt)) %>% # gather(fly_id, sleep, -c(day, phase, zt)) %>%
     group_by(fly_id, day, phase) %>%
-    summarise(sleep_phase = sum(sleep)) %>%
+    summarise(sleep_phase = sum(sleep), .groups = "drop") %>%
     mutate(phase = as.character(phase)) %>%
     spread(fly_id, sleep_phase)
 sleep_phase <-
@@ -44,7 +71,7 @@ sleep_phase <-
     pivot_longer(names_to = "fly_id",
                  values_to = "sleep", -c(day, phase, zt)) %>% # gather(fly_id, sleep, -c(day, phase, zt)) %>%
     group_by(fly_id, day) %>%
-    summarise(sleep_phase = sum(sleep)) %>%
+    summarise(sleep_phase = sum(sleep), .groups = "drop") %>%
     mutate(phase = "TOTAL") %>%
     select(fly_id, day, phase, sleep_phase) %>%
     spread(fly_id, sleep_phase) %>%
@@ -213,38 +240,38 @@ for(jj in 1:flyTable$experiment_interval[aa]) {
 }
 
 if(tolower(flyTable$start_phase[1]) == "day") {
-    nBouts <- bind_cols(fly_id = flies, tbl_df(nBouts_day), tbl_df(nBouts_night))
-    aveDurationBouts <- bind_cols(fly_id = flies, tbl_df(aveDurationBouts_day), tbl_df(aveDurationBouts_night))
-    maxDurationBouts <- bind_cols(fly_id = flies, tbl_df(maxDurationBouts_day), tbl_df(maxDurationBouts_night))
-    maxDurationZT <- bind_cols(fly_id = flies, tbl_df(maxDurationZT_day), tbl_df(maxDurationZT_night))
-    latency <- bind_cols(fly_id = flies, tbl_df(latency_day), tbl_df(latency_night))
-    ci <- bind_cols(fly_id = flies, tbl_df(ci_day), tbl_df(ci_night))
-    waso <- bind_cols(fly_id = flies, tbl_df(waso_day), tbl_df(waso_night))
-    briefAwake <- bind_cols(fly_id = flies, tbl_df(briefAwake_day), tbl_df(briefAwake_night))
-    briefAwake_koh <- bind_cols(fly_id = flies, tbl_df(briefAwake_koh_day), tbl_df(briefAwake_koh_night))
+    nBouts <- bind_cols(fly_id = flies, as_tibble(nBouts_day), as_tibble(nBouts_night))
+    aveDurationBouts <- bind_cols(fly_id = flies, as_tibble(aveDurationBouts_day), as_tibble(aveDurationBouts_night))
+    maxDurationBouts <- bind_cols(fly_id = flies, as_tibble(maxDurationBouts_day), as_tibble(maxDurationBouts_night))
+    maxDurationZT <- bind_cols(fly_id = flies, as_tibble(maxDurationZT_day), as_tibble(maxDurationZT_night))
+    latency <- bind_cols(fly_id = flies, as_tibble(latency_day), as_tibble(latency_night))
+    ci <- bind_cols(fly_id = flies, as_tibble(ci_day), as_tibble(ci_night))
+    waso <- bind_cols(fly_id = flies, as_tibble(waso_day), as_tibble(waso_night))
+    briefAwake <- bind_cols(fly_id = flies, as_tibble(briefAwake_day), as_tibble(briefAwake_night))
+    briefAwake_koh <- bind_cols(fly_id = flies, as_tibble(briefAwake_koh_day), as_tibble(briefAwake_koh_night))
     boutLength_df %<>% arrange(phase, day) 
 } else {
-    nBouts <- bind_cols(fly_id = flies, tbl_df(nBouts_night), tbl_df(nBouts_day))
-    aveDurationBouts <- bind_cols(fly_id = flies, tbl_df(aveDurationBouts_night), tbl_df(aveDurationBouts_day))
-    maxDurationBouts <- bind_cols(fly_id = flies, tbl_df(maxDurationBouts_night), tbl_df(maxDurationBouts_day))
-    maxDurationZT <- bind_cols(fly_id = flies, tbl_df(maxDurationZT_night), tbl_df(maxDurationZT_day))
-    latency <- bind_cols(fly_id = flies, tbl_df(latency_night), tbl_df(latency_day))
-    ci <- bind_cols(fly_id = flies, tbl_df(ci_night), tbl_df(ci_day))
-    waso <- bind_cols(fly_id = flies, tbl_df(waso_night), tbl_df(waso_day))
-    briefAwake <- bind_cols(fly_id = flies, tbl_df(briefAwake_night), tbl_df(briefAwake_day))
-    briefAwake_koh <- bind_cols(fly_id = flies, tbl_df(briefAwake_koh_night), tbl_df(briefAwake_koh_day))
+    nBouts <- bind_cols(fly_id = flies, as_tibble(nBouts_night), as_tibble(nBouts_day))
+    aveDurationBouts <- bind_cols(fly_id = flies, as_tibble(aveDurationBouts_night), as_tibble(aveDurationBouts_day))
+    maxDurationBouts <- bind_cols(fly_id = flies, as_tibble(maxDurationBouts_night), as_tibble(maxDurationBouts_day))
+    maxDurationZT <- bind_cols(fly_id = flies, as_tibble(maxDurationZT_night), as_tibble(maxDurationZT_day))
+    latency <- bind_cols(fly_id = flies, as_tibble(latency_night), as_tibble(latency_day))
+    ci <- bind_cols(fly_id = flies, as_tibble(ci_night), as_tibble(ci_day))
+    waso <- bind_cols(fly_id = flies, as_tibble(waso_night), as_tibble(waso_day))
+    briefAwake <- bind_cols(fly_id = flies, as_tibble(briefAwake_night), as_tibble(briefAwake_day))
+    briefAwake_koh <- bind_cols(fly_id = flies, as_tibble(briefAwake_koh_night), as_tibble(briefAwake_koh_day))
     boutLength_df %<>% arrange(desc(phase), day)
 }
 
-ss_nBouts <- bind_cols(fly_id = flies, tbl_df(ss_nBouts))
-ss_aveDurationBouts <- bind_cols(fly_id = flies, tbl_df(ss_aveDurationBouts))
-ss_maxDurationBouts <- bind_cols(fly_id = flies, tbl_df(ss_maxDurationBouts))
-ss_maxDurationZT <- bind_cols(fly_id = flies, tbl_df(ss_maxDurationZT))
-ss_latency <- bind_cols(fly_id = flies, tbl_df(ss_latency))
-ss_ci <- bind_cols(fly_id = flies, tbl_df(ss_ci))
-ss_waso <- bind_cols(fly_id = flies, tbl_df(ss_waso))
-ss_briefAwake <- bind_cols(fly_id = flies, tbl_df(ss_briefAwake))
-ss_briefAwake_koh <- bind_cols(fly_id = flies, tbl_df(ss_briefAwake_koh))
+ss_nBouts <- bind_cols(fly_id = flies, as_tibble(ss_nBouts))
+ss_aveDurationBouts <- bind_cols(fly_id = flies, as_tibble(ss_aveDurationBouts))
+ss_maxDurationBouts <- bind_cols(fly_id = flies, as_tibble(ss_maxDurationBouts))
+ss_maxDurationZT <- bind_cols(fly_id = flies, as_tibble(ss_maxDurationZT))
+ss_latency <- bind_cols(fly_id = flies, as_tibble(ss_latency))
+ss_ci <- bind_cols(fly_id = flies, as_tibble(ss_ci))
+ss_waso <- bind_cols(fly_id = flies, as_tibble(ss_waso))
+ss_briefAwake <- bind_cols(fly_id = flies, as_tibble(ss_briefAwake))
+ss_briefAwake_koh <- bind_cols(fly_id = flies, as_tibble(ss_briefAwake_koh))
 ss_boutLength_df %<>% arrange(desc(phase), day) ### correct?
 
 hist_day <- ggplot(filter(boutLength_df, phase == "Day"), aes(lengths)) +
@@ -293,6 +320,7 @@ write.table(ss_briefAwake_koh, paste0(filesDir, subDir, "sleep_briefAwake_koh_SU
 write.table(ss_boutLength_df, paste0(filesDir, subDir, "sleep_bout_lengthSUBSET.txt"), sep = "\t", quote = F, row.names = F)
 
 writexl::write_xlsx(list(sleep_pattern = sleep_day,
+                         sleep_pattern_30min = sleep_day_demi,
                          sleep_phase = sleep_phase,
                          sleep_bout_n = nBouts,
                          sleep_bout_aveDur = aveDurationBouts,
