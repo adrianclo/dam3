@@ -22,6 +22,7 @@ cat("         .5: 03-02-2020\n\n")
 cat("PURPOSE: This program will read in your .txt file(s) containing SLEEP and AWAKE activity in flies\n")
 cat("         Data are exported to a folder specified in your flyTable.xlsx.\n\n")
 
+first_run <- F
 source("1_packages.R")
 
 filesDir <- choose_dir() # C:/this/directory
