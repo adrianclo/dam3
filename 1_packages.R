@@ -15,7 +15,10 @@ required_packages <- dplyr::tribble(
     "readxl",     "1.3.1",
     "reshape2",   "1.4.3",
     "stringr",    "1.4.0",
-    "tidyverse",  "1.2.1",
+    # "tidyverse",  "1.2.1",
+    "dplyr",      "1.0.9", 
+    "ggplot2",    "3.3.6",
+    "tidyr",      "1.2.0",
     "writexl",    "1.2"
 )
 
