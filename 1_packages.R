@@ -41,8 +41,8 @@ if(first_run) {
     
     new_packages <- 
         required_packages %>% 
-        filter(!(required_packages$packages %in% installed.packages()[,"Package"])) %>% 
-        pull(packages)
+        dplyr::filter(!(required_packages$packages %in% installed.packages()[,"Package"])) %>% 
+        dplyr::pull(packages)
     
     if(length(new_packages)) {
         cat("\n")
@@ -56,18 +56,17 @@ if(first_run) {
     }
     
     ## check whether required packages are updated
-    required_packages <- required_packages %>% mutate(version_current = NA)
+    required_packages <- required_packages %>% dplyr::mutate(version_current = NA)
     
-    # ii = 1
     for(ii in 1:nrow(required_packages)) { 
         required_packages$version_current[ii] <- as.character(packageVersion(required_packages$packages[ii]))
     }
     
     outdated <- 
         required_packages %>% 
-        mutate(outdated = version_current < version) %>% 
-        filter(outdated == T) %>% 
-        pull(packages)
+        dplyr::mutate(outdated = version_current < version) %>% 
+        dplyr::filter(outdated == TRUE) %>% 
+        dplyr::pull(packages)
     
     if(length(outdated)) {
         cat("\n")
@@ -84,4 +83,3 @@ if(first_run) {
 ## load required packages
 suppressMessages(suppressWarnings( lapply(required_packages$packages, require, character.only = TRUE) ))
 # rm(new_packages, outdated, required_packages)
-
